@@ -1,6 +1,33 @@
 // - - - - -
-// NPM2000 Driver Firmware
-// Implements a complete RDM responder
+// DmxSerial2 - A hardware supported interface to DMX and RDM.
+// RDMSerialRecv.ino: Sample RDM application.
+//
+// Copyright (c) 2011-2013 by Matthias Hertel, http://www.mathertel.de
+// This work is licensed under a BSD style license. See http://www.mathertel.de/License.aspx
+// 
+// This Arduino project is a sample application for the DMXSerial2 library that shows
+// how a 3 channel receiving RDM client can be implemented.
+// The 3 channels are used for PWM Output:
+// address (startAddress) + 0 (red) -> PWM Port 9
+// address (startAddress) + 1 (green) -> PWM Port 6
+// address (startAddress) + 2 (blue) -> PWM Port 5
+//
+// Ths sample shows how Device specific RDM Commands are handled in the processCommand function.
+// The following RDM commands are implemented here:
+// E120_LAMP_HOURS
+// E120_DEVICE_HOURS
+//
+// More documentation and samples are available at http://www.mathertel.de/Arduino
+// 06.12.2012 created from DMXSerialRecv sample.
+// 09.12.2012 added first RDM response.
+// 22.01.2013 first published version to support RDM
+// 03.03.2013 Using DMXSerial2 as a library
+// 15.05.2013 Arduino Leonard and Arduino MEGA compatibility
+// 15.12.2013 ADD: output information on a LEONARDO board by using the #define SERIAL_DEBUG definition
+//            If you have to save pgm space you can delete the inner lines of this "#if" blocks
+// 24.01.2014 Peter Newman/Sean Sill: Get device specific PIDs returning properly in supportedParameters
+// 24.01.2014 Peter Newman: Make the device specific PIDs compliant with the OLA RDM Tests. Add device model ID option
+// - - - - -
 
 #include <EEPROM.h>
 #include <DMXSerial2.h>
@@ -24,7 +51,7 @@ struct RDMINIT rdmInit = { "raumzeitlabor.de", // Manufacturer Label
 		NUM_OUTPUTS, // footprint
 		(sizeof(my_pids) / sizeof(uint16_t)), my_pids, { 0x09, 0x7F, 0x23, 0x42,
 				0x00, 0x00 }, E120_PRODUCT_CATEGORY_POWER, // Product category
-		0x01000000 // Software Version
+		0x00000001UL // Software Version
 		};
 
 void setup() {
@@ -51,9 +78,9 @@ void loop() {
 	if (lastPacket < 30000) {
 		for (i = 0; i < NUM_OUTPUTS; i++) {
 			if (DMXSerial2.read(i + DMXSerial2.getStartAddress()) > 127) {
-//              digitalWrite(outputs[i], HIGH);
+				digitalWrite(outputs[i], HIGH);
 			} else {
-//              digitalWrite(outputs[i], LOW);
+				digitalWrite(outputs[i], LOW);
 			}
 		}
 
